@@ -1,0 +1,23 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+}
+.app-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+}
+h1 { text-align: center; color: #333; }
+.input-section { display: flex; gap: 10px; margin-bottom: 20px; }
+input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+button { padding: 10px 15px; background: #6200ee; color: white; border: none; border-radius: 6px; cursor: pointer; }
+button:hover { background: #4b00b4; }
+ul { list-style: none; padding: 0; }
+li { display: flex; justify-content: space-between; padding: 12px; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #6200ee; }
+.delete-btn { background: none; color: #ff5252; border: none; cursor: pointer; font-weight: bold; }
