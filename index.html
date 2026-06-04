@@ -3,13 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion de Tâches Avancée</title>
+    <title>Gestion de Tâches Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <h1>Mes Tâches ✨</h1>
+        <h1>Mon Tableau de Bord ✨</h1>
         
+        <!-- Barre de statistiques et progression -->
+        <div class="stats-container">
+            <div class="stats-text" id="statsText">0 / 0 tâches terminées (0%)</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+        </div>
+
+        <!-- Barre de Recherche -->
+        <div class="search-section">
+            <input type="text" id="searchInput" placeholder="🔍 Rechercher une tâche ou un tag...">
+        </div>
+
+        <!-- Section d'ajout -->
         <div class="input-section">
             <input type="text" id="taskInput" placeholder="Ajouter une nouvelle tâche...">
             <select id="tagSelect">
@@ -20,12 +34,14 @@
             <button id="addBtn">Ajouter</button>
         </div>
 
+        <!-- Filtres d'état -->
         <div class="filter-section">
             <button class="filter-btn active" data-filter="all">Toutes</button>
             <button class="filter-btn" data-filter="active">En cours</button>
             <button class="filter-btn" data-filter="completed">Terminées</button>
         </div>
 
+        <!-- Liste des tâches -->
         <ul id="taskList"></ul>
     </div>
     <script src="script.js"></script>
