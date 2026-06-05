@@ -3,48 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion de Tâches Pro</title>
-    <link rel="stylesheet" href="style.css">
+    <title>To Do List Collaborative — Groupe 12</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 500px; }
+        .form { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 12px; }
+        .form input[type="text"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; transition: border 0.3s; }
+        .form input[type="text"]:focus { border-color: #ff5722; outline: none; }
+        .form .add { border: none; background-color: #ff5722; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: background 0.3s; }
+        .form .add:hover { background-color: #e64a19; }
+        .tasks { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .task { background: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #ff5722; }
+        .task-content { font-size: 15px; color: #333; }
+        .task-content b { color: #ff5722; text-transform: capitalize; }
+        .del { background-color: #ff5252; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; border: none; transition: background 0.3s; }
+        .del:hover { background-color: #d32f2f; }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <h1>Mon Tableau de Bord ✨</h1>
-        
-        <!-- Barre de statistiques et progression -->
-        <div class="stats-container">
-            <div class="stats-text" id="statsText">0 / 0 tâches terminées (0%)</div>
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progressBarFill"></div>
-            </div>
-        </div>
 
-        <!-- Barre de Recherche -->
-        <div class="search-section">
-            <input type="text" id="searchInput" placeholder="🔍 Rechercher une tâche ou un tag...">
+    <div class="container">
+        <div class="form">
+            <h2 style="margin: 0 0 10px 0; color: #333; text-align: center;">Projet Groupe 12</h2>
+            <input type="text" class="input-name" placeholder="Votre nom (ex: Laetitia...)" />
+            <input type="text" class="input-task" placeholder="Quelle est la tâche ?" />
+            <input type="submit" class="add" value="Ajouter pour l'équipe" />
         </div>
-
-        <!-- Section d'ajout -->
-        <div class="input-section">
-            <input type="text" class="input-name" placeholder="Entrez votre nom ici..." style="padding: 10px; margin-bottom: 10px; width: 100%; border-radius: 5px; border: 1px solid #ccc;">
-            <input type="text" id="taskInput" placeholder="Ajouter une nouvelle tâche...">
-            <select id="tagSelect">
-                <option value="💻 Travail">💻 Travail</option>
-                <option value="🏠 Perso">🏠 Perso</option>
-                <option value="🚨 Urgent">🚨 Urgent</option>
-            </select>
-            <button id="addBtn">Ajouter</button>
-        </div>
-
-        <!-- Filtres d'état -->
-        <div class="filter-section">
-            <button class="filter-btn active" data-filter="all">Toutes</button>
-            <button class="filter-btn" data-filter="active">En cours</button>
-            <button class="filter-btn" data-filter="completed">Terminées</button>
-        </div>
-
-        <!-- Liste des tâches -->
-        <ul id="taskList"></ul>
+        <div class="tasks"></div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        // ============================================================
+        // 1. REMPLACEZ CETTE URL PAR VOTRE ROUTE OPENSHIFT
+        // ============================================================
+        const URL_API = "http://VOTRE_ROUTE_GENEREE_PAR_OPENSHIFT/taches";
+
+        const inputName = document.querySelector(".input-name");
+        const inputTask = document.querySelector(".input-task");
+        const submitBtn = document.querySelector(".add");
+        const tasksDiv = document.querySelector(".tasks");
+
+        // Action : Ajouter une tâche
+        submitBtn.onclick = async function () {
+            if (inputTask.value !== "" && inputName.value !== "") {
+                const data = { nom: inputName.value, texte: inputTask.value };
+                
+                try {
+                    await fetch(URL_API, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+                    inputTask.value = ""; // On vide la tâche
+                    getTasks(); // Rafraîchir
+                } catch (e) { console.error("Erreur d'envoi", e); }
+            } else {
+                alert("Nom et Tâche obligatoires !");
+            }
+        };
+
+        // Action : Récupérer et Afficher
+        async function getTasks() {
+            try {
+                const res = await fetch(URL_API);
+                const list = await res.json();
+                tasksDiv.innerHTML = "";
+
+                list.forEach((t, index) => {
+                    let div = document.createElement("div");
+                    div.className = "task";
+                    div.innerHTML = `
+                        <span class="task-content"><b>${t.nom}</b> : ${t.texte}</span>
+                        <button class="del" onclick="deleteTask(${index})">Supprimer</button>
+                    `;
+                    tasksDiv.appendChild(div);
+                });
+            } catch (e) { console.error("Erreur de lecture", e); }
+        }
+
+        // Action : Supprimer réellement sur OpenShift
+        async function deleteTask(index) {
+            try {
+                await fetch(`${URL_API}/${index}`, { method: "DELETE" });
+                getTasks(); // Rafraîchir pour tout le monde
+            } catch (e) { console.error("Erreur suppression", e); }
+        }
+
+        // Rafraîchissement automatique toutes les 4 secondes
+        setInterval(getTasks, 4000);
+        getTasks(); // Chargement initial
+    </script>
 </body>
 </html>
