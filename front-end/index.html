@@ -34,7 +34,9 @@
 
     <script>
         // ============================================================
-        // 1. REMPLACEZ CETTE URL PAR VOTRE ROUTE OPENSHIFT
+        // REMPLACEZ CETTE URL PAR VOTRE ROUTE GENEREE PAR OPENSHIFT
+        // IMPORTANT : Ne mettez pas de "/" à la fin de cette URL.
+        // Exemple : "https://todo-api-groupe12.apps.openshift.com/taches"
         // ============================================================
         const URL_API = "http://VOTRE_ROUTE_GENEREE_PAR_OPENSHIFT/taches";
 
@@ -54,8 +56,8 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(data)
                     });
-                    inputTask.value = ""; // On vide la tâche
-                    getTasks(); // Rafraîchir
+                    inputTask.value = ""; 
+                    getTasks(); 
                 } catch (e) { console.error("Erreur d'envoi", e); }
             } else {
                 alert("Nom et Tâche obligatoires !");
@@ -66,6 +68,7 @@
         async function getTasks() {
             try {
                 const res = await fetch(URL_API);
+                if (!res.ok) throw new Error("Erreur serveur");
                 const list = await res.json();
                 tasksDiv.innerHTML = "";
 
@@ -81,17 +84,18 @@
             } catch (e) { console.error("Erreur de lecture", e); }
         }
 
-        // Action : Supprimer réellement sur OpenShift
+        // Action : Supprimer sur le serveur
         async function deleteTask(index) {
             try {
+                // S'assure de construire correctement l'adresse -> URL_API + / + index
                 await fetch(`${URL_API}/${index}`, { method: "DELETE" });
-                getTasks(); // Rafraîchir pour tout le monde
+                getTasks(); 
             } catch (e) { console.error("Erreur suppression", e); }
         }
 
-        // Rafraîchissement automatique toutes les 4 secondes
+        // Rafraîchissement en direct toutes les 4 secondes
         setInterval(getTasks, 4000);
-        getTasks(); // Chargement initial
+        getTasks(); 
     </script>
 </body>
 </html>
