@@ -1,32 +1,82 @@
-// Étape 3 : La fonction qui va chercher les tâches de TOUT LE MONDE
-async function recupererEtAfficherTaches() {
-    try {
-        // LECTURE SUR OPENSHIFT : On demande toutes les tâches stockées
-        const reponse = await fetch(URL_API_OPENSHIFT);
-        const listeTaches = await reponse.json();
+// 1. URL fournie par OpenShift après le déploiement de votre main.py
+const URL_API_OPENSHIFT = "http://VOTRE_ROUTE_OPENSHIFT_ICI/taches";
 
-        // On cible la zone HTML où s'affichent les tâches (ex: une div ou un ul)
-        const conteneurListe = document.getElementById("zone-liste-taches");
-        conteneurListe.innerHTML = ""; // On vide l'ancien affichage
+// On cible nos éléments HTML
+let inputName = document.querySelector(".input-name"); // La nouvelle case Nom
+let inputTask = document.querySelector(".input");      // Votre case Tâche actuelle
+let submit = document.querySelector(".add");           // Votre bouton "Add Task"
+let tasksDiv = document.querySelector(".tasks");       // Votre div qui affiche les tâches
 
-        // On boucle sur chaque tâche reçue pour l'ajouter sur l'écran
-        listeTaches.forEach(tache => {
-            conteneurListe.innerHTML += `
-                <div class="tache-item" style="padding: 10px; border-bottom: 1px solid #eee;">
-                    <strong>${tache.nom} :</strong> ${tache.texte}
-                </div>
-            `;
-        });
-
-    } catch (erreur) {
-        console.error("Erreur lors de la récupération des tâches :", erreur);
+// Au clic sur le bouton "Add Task"
+submit.onclick = function() {
+    if (inputTask.value !== "" && inputName.value !== "") {
+        addtask(inputName.value, inputTask.value); // On envoie le nom et le texte
+        inputTask.value = ""; // On vide juste la case tâche
+    } else {
+        alert("Veuillez remplir votre nom et votre tâche !");
     }
 }
 
-// Étape 4 : RAFAÎCHISSEMENT AUTOMATIQUE (Le secret pour voir les autres !)
-// Cette ligne demande à votre JavaScript de se connecter à OpenShift toutes les 4 secondes 
-// pour vérifier si un autre utilisateur a ajouté son nom et sa tâche.
-setInterval(recupererEtAfficherTaches, 4000);
+// FONCTION 1 : ENVOYER LA TÂCHE À OPENSHIFT
+async function addtask(userName, taskText) {
+    const taskData = {
+        nom: userName,
+        texte: taskText
+    };
 
-// On appelle la fonction une première fois au chargement de la page
-recupererEtAfficherTaches();
+    try {
+        await fetch(URL_API_OPENSHIFT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(taskData)
+        });
+        
+        // On rafraîchit immédiatement l'affichage
+        getAndDisplayTasks();
+    } catch (error) {
+        console.error("Erreur lors de l'envoi :", error);
+    }
+}
+
+// FONCTION 2 : RÉCUPÉRER ET AFFICHER LES TÂCHES DE TOUT LE MONDE
+async function getAndDisplayTasks() {
+    try {
+        const response = await fetch(URL_API_OPENSHIFT);
+        const tasksList = await response.json();
+
+        tasksDiv.innerHTML = ""; // On vide l'écran avant de réafficher
+
+        tasksList.forEach((task) => {
+            // Création de la div principale de la tâche (votre style actuel)
+            let div = document.createElement("div");
+            div.className = "task";
+            
+            // On affiche "Nom : Tâche"
+            div.appendChild(document.createTextNode(`${task.nom} : ${task.texte}`));
+            
+            // Création du bouton Supprimer (votre style actuel)
+            let span = document.createElement("span");
+            span.className = "del";
+            span.appendChild(document.createTextNode("Delete"));
+            div.appendChild(span);
+            
+            tasksDiv.appendChild(div);
+        });
+    } catch (error) {
+        console.error("Erreur lors de la récupération :", error);
+    }
+}
+
+// FONCTION 3 : GÉRER LE CLIC SUR LE BOUTON DELETE
+tasksDiv.addEventListener("click", (e) => {
+    if (e.target.classList.contains("del")) {
+        // Pour un TP simple en mémoire, le delete supprime juste visuellement pour l'instant
+        e.target.parentElement.remove();
+    }
+});
+
+// REFRESH AUTOMATIQUE : On vérifie les nouvelles tâches des autres toutes les 4 secondes
+setInterval(getAndDisplayTasks, 4000);
+
+// Charger les tâches dès l'ouverture de la page
+getAndDisplayTasks();
